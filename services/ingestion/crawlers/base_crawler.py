@@ -2,6 +2,7 @@ import abc
 import hashlib
 import uuid
 import datetime
+import sys
 import urllib.request
 import urllib.parse
 from typing import List, Dict, Any
@@ -13,6 +14,18 @@ class BaseCrawler(abc.ABC):
         self.source_name = source_name
         self.db = db
         self.source = db.query(SourceRegistry).filter(SourceRegistry.name == source_name).first()
+        if not self.source:
+            self.source = SourceRegistry(
+                id=str(uuid.uuid4()),
+                name=source_name,
+                base_url=f"https://{source_name.lower().replace(' ', '')}.com/",
+                source_type="API" if "Hub" in source_name or "Projects" in source_name else "DIRECTORY",
+                crawl_allowed=True,
+                status="ACTIVE"
+            )
+            self.db.add(self.source)
+            self.db.commit()
+
         self.headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AI Market Hub Collector/1.0 (+http://localhost)',
             'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
@@ -29,13 +42,11 @@ class BaseCrawler(abc.ABC):
         pass
 
     def fetch_page(self, url: str) -> str:
-        """Fetch raw HTML content while respecting rate limits and storing raw source snapshot."""
         req = urllib.request.Request(url, headers=self.headers)
-        with urllib.request.urlopen(req, timeout=10) as response:
+        with urllib.request.urlopen(req, timeout=12) as response:
             content = response.read().decode('utf-8', errors='ignore')
             status_code = response.status
             
-            # Store raw page snapshot in raw_source_pages
             content_hash = hashlib.sha256(content.encode('utf-8')).hexdigest()
             raw_page = RawSourcePage(
                 id=str(uuid.uuid4()),
@@ -43,7 +54,7 @@ class BaseCrawler(abc.ABC):
                 url=url,
                 http_status=status_code,
                 content_hash=content_hash,
-                raw_content=content[:100000], # Limit raw storage snapshot to 100kb
+                raw_content=content[:50000],
                 fetched_at=datetime.datetime.utcnow(),
                 crawl_status="PROCESSED"
             )
@@ -52,12 +63,11 @@ class BaseCrawler(abc.ABC):
             return content
 
     def run_crawl(self, max_pages: int = 50) -> List[Dict[str, Any]]:
-        """Execute full crawl workflow across discovered URLs."""
         if not self.source or not self.source.crawl_allowed:
-            print(f"[{self.source_name}] Skipping crawl: source is marked BLOCKED or disabled.")
+            print(f"[{self.source_name}] Skipping crawl: source is marked BLOCKED or disabled.", flush=True)
             return []
             
-        print(f"[{self.source_name}] Starting crawl job...")
+        print(f"[{self.source_name}] Starting crawl job...", flush=True)
         job = CrawlJob(
             id=str(uuid.uuid4()),
             source_id=self.source.id,
@@ -88,7 +98,7 @@ class BaseCrawler(abc.ABC):
                     occurred_at=datetime.datetime.utcnow()
                 )
                 self.db.add(err)
-                print(f"[{self.source_name}] Error crawling {url}: {e}")
+                print(f"[{self.source_name}] Error crawling {url}: {e}", flush=True)
 
         job.products_discovered = len(extracted_products)
         job.status = "COMPLETED"
@@ -97,5 +107,5 @@ class BaseCrawler(abc.ABC):
             self.source.last_crawled = datetime.datetime.utcnow()
         self.db.commit()
 
-        print(f"[{self.source_name}] Crawl complete! Discovered {len(extracted_products)} product candidates.")
+        print(f"[{self.source_name}] Crawl complete! Discovered {len(extracted_products)} product candidates.", flush=True)
         return extracted_products
