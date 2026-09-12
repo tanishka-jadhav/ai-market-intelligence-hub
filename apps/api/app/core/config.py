@@ -9,10 +9,17 @@ class Settings(BaseModel):
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 7 # 7 days
     
-    # Dual database support: SQLite fallback for local standalone, PostgreSQL for production
-    DATABASE_URL: str = os.getenv(
-        "DATABASE_URL", 
-        f"sqlite:///{os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../../database/ai_market_hub.db'))}"
-    )
+    DATABASE_URL: str = os.getenv("DATABASE_URL", "")
+
+    def __init__(self, **data):
+        super().__init__(**data)
+        if not self.DATABASE_URL:
+            possible_paths = [
+                os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../../database/ai_market_hub.db")),
+                os.path.abspath(os.path.join(os.getcwd(), "database/ai_market_hub.db")),
+                os.path.abspath(os.path.join(os.getcwd(), "../database/ai_market_hub.db")),
+            ]
+            chosen = next((p for p in possible_paths if os.path.exists(p)), possible_paths[0])
+            self.DATABASE_URL = f"sqlite:///{chosen}"
 
 settings = Settings()
