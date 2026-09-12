@@ -32,7 +32,7 @@ export default function AgentsPage() {
   useEffect(() => {
     async function fetchAgents() {
       setLoading(true);
-      const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
+      const apiBase = process.env.NEXT_PUBLIC_API_URL || "";
       try {
         let url = `${apiBase}/api/v1/products?product_type=AI+Agent&limit=60`;
         if (search) url += `&search=${encodeURIComponent(search)}`;

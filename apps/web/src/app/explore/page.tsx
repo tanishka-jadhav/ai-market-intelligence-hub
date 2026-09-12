@@ -33,7 +33,7 @@ export default function ExploreToolsPage() {
   useEffect(() => {
     async function fetchTools() {
       setLoading(true);
-      const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
+      const apiBase = process.env.NEXT_PUBLIC_API_URL || "";
       try {
         let url = `${apiBase}/api/v1/products?limit=60`;
         if (search) url += `&search=${encodeURIComponent(search)}`;

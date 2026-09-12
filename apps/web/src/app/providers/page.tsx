@@ -21,7 +21,7 @@ export default function ProvidersPage() {
 
   useEffect(() => {
     async function fetchProviders() {
-      const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
+      const apiBase = process.env.NEXT_PUBLIC_API_URL || "";
       try {
         const res = await fetch(`${apiBase}/api/v1/products?page=1&limit=100`);
         if (res.ok) {
