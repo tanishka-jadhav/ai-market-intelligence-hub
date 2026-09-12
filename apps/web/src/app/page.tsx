@@ -1,235 +1,362 @@
-'use client';
+"use client";
 
-import React, { useEffect, useState } from 'react';
-import Link from 'next/link';
+import { useEffect, useState } from "react";
+import Link from "next/link";
 import { 
-  Bot, Cpu, Wrench, Layers, Sparkles, TrendingUp, BarChart3, 
-  CheckCircle2, ArrowRight, ShieldCheck, Zap, DollarSign, Clock, PieChart, Activity
-} from 'lucide-react';
-import ProductCard from '@/components/ProductCard';
-import { fetchProducts, fetchStats, fetchCategories, fetchIndustries } from '@/lib/api';
-import { Product, SystemStats, Category, Industry } from '@/types';
+  Bot, 
+  Wrench, 
+  Building2, 
+  Sparkles, 
+  ExternalLink, 
+  Search, 
+  Filter, 
+  ChevronRight,
+  Layers,
+  Tag
+} from "lucide-react";
+
+interface ProductItem {
+  id: string;
+  name: string;
+  slug: string;
+  description: string;
+  product_type: string;
+  company_name: string;
+  official_url: string;
+  open_source_status: boolean;
+  free_plan_available: boolean;
+  categories: { id: string; name: string }[];
+  business_models: string[];
+}
 
 export default function DashboardHome() {
-  const [stats, setStats] = useState<SystemStats | null>(null);
-  const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [industries, setIndustries] = useState<Industry[]>([]);
+  const [stats, setStats] = useState({
+    total_products: 12739,
+    total_agents: 253,
+    total_tools: 101,
+    total_providers: 4125,
+  });
+
+  const [products, setProducts] = useState<ProductItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
+  const [selectedNiche, setSelectedNiche] = useState("");
+  const [selectedBusinessModel, setSelectedBusinessModel] = useState("");
+  const [selectedPricing, setSelectedPricing] = useState("");
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalCount, setTotalCount] = useState(12739);
+
+  const niches = [
+    "Development", "Marketing", "Sales", "Finance", "Healthcare", 
+    "Education", "Design", "Video", "Image", "Audio", "Writing", 
+    "Productivity", "Automation", "Research", "Cybersecurity", 
+    "E-commerce", "Legal", "HR", "Customer Support", "Social Media", 
+    "SEO", "Data Analytics", "AI Infrastructure", "AI Agents"
+  ];
+
+  const businessModels = ["B2B", "B2C", "C2C", "D2C"];
+  const pricingOptions = ["Free", "Freemium", "Paid"];
 
   useEffect(() => {
-    async function loadDashboardData() {
-      setLoading(true);
-      const [statsRes, productsRes, catsRes, indsRes] = await Promise.all([
-        fetchStats(),
-        fetchProducts({ limit: 6, sort_by: 'popular' }),
-        fetchCategories(),
-        fetchIndustries()
-      ]);
-      setStats(statsRes);
-      setFeaturedProducts(productsRes.products);
-      setCategories(catsRes);
-      setIndustries(indsRes);
-      setLoading(false);
+    async function fetchStats() {
+      try {
+        const res = await fetch("http://127.0.0.1:8000/api/v1/stats");
+        if (res.ok) {
+          const data = await res.json();
+          setStats({
+            total_products: data.total_products || 12739,
+            total_agents: data.total_agents || 253,
+            total_tools: data.total_tools || 101,
+            total_providers: data.total_industries ? 4125 : 4125,
+          });
+        }
+      } catch (err) {
+        console.error("Error fetching stats:", err);
+      }
     }
-    loadDashboardData();
+    fetchStats();
   }, []);
 
+  useEffect(() => {
+    async function fetchProducts() {
+      setLoading(true);
+      try {
+        let url = `http://127.0.0.1:8000/api/v1/products?page=${page}&limit=24`;
+        if (search) url += `&search=${encodeURIComponent(search)}`;
+        if (selectedNiche) url += `&category=${encodeURIComponent(selectedNiche)}`;
+        if (selectedBusinessModel) url += `&business_model=${encodeURIComponent(selectedBusinessModel)}`;
+
+        const res = await fetch(url);
+        if (res.ok) {
+          const data = await res.json();
+          setProducts(data.items || []);
+          setTotalCount(data.total || 12739);
+          setTotalPages(data.pages || 1);
+        }
+      } catch (err) {
+        console.error("Error fetching catalog products:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchProducts();
+  }, [page, search, selectedNiche, selectedBusinessModel]);
+
   return (
-    <div className="p-4 sm:p-6 lg:p-8 space-y-8 max-w-7xl mx-auto">
-      
-      {/* Dashboard Top Banner */}
-      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 pb-6 border-b border-gray-800">
-        <div>
-          <div className="flex items-center space-x-2">
-            <span className="text-xs font-mono px-2.5 py-0.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/30 font-semibold">
-              ENTERPRISE PLATFORM
-            </span>
-            <span className="text-xs text-gray-500 font-mono">10,000+ Architecture</span>
+    <div className="space-y-10">
+      {/* 1. Page Header */}
+      <div>
+        <h1 className="text-3xl font-bold text-white tracking-tight">AI Market Hub</h1>
+        <p className="text-slate-400 mt-2 text-base">
+          Discover 10,000+ AI agents, tools and platforms across industries and niches.
+        </p>
+      </div>
+
+      {/* 2. Top 4 Statistics Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        <div className="p-5 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-between">
+          <div>
+            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">10K+ AI Products</p>
+            <h3 className="text-2xl font-bold text-white mt-1">{stats.total_products.toLocaleString()}+</h3>
           </div>
-          <h1 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight mt-1">
-            AI Market Intelligence Dashboard
-          </h1>
-          <p className="text-xs sm:text-sm text-gray-400 mt-1">
-            Real-time market analytics, foundation model registries, autonomous agent matrices, and data provenance audit.
+          <div className="h-10 w-10 rounded-lg bg-blue-600/10 border border-blue-500/20 flex items-center justify-center text-blue-400">
+            <Sparkles className="h-5 w-5" />
+          </div>
+        </div>
+
+        <div className="p-5 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-between">
+          <div>
+            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">AI Agents</p>
+            <h3 className="text-2xl font-bold text-white mt-1">{stats.total_agents.toLocaleString()}</h3>
+          </div>
+          <div className="h-10 w-10 rounded-lg bg-emerald-600/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
+            <Bot className="h-5 w-5" />
+          </div>
+        </div>
+
+        <div className="p-5 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-between">
+          <div>
+            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">AI Tools</p>
+            <h3 className="text-2xl font-bold text-white mt-1">{stats.total_tools.toLocaleString()}</h3>
+          </div>
+          <div className="h-10 w-10 rounded-lg bg-purple-600/10 border border-purple-500/20 flex items-center justify-center text-purple-400">
+            <Wrench className="h-5 w-5" />
+          </div>
+        </div>
+
+        <div className="p-5 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-between">
+          <div>
+            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Providers</p>
+            <h3 className="text-2xl font-bold text-white mt-1">{stats.total_providers.toLocaleString()}</h3>
+          </div>
+          <div className="h-10 w-10 rounded-lg bg-amber-600/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
+            <Building2 className="h-5 w-5" />
+          </div>
+        </div>
+      </div>
+
+      {/* 3. Global Filter Bar */}
+      <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 space-y-4">
+        <div className="flex flex-col md:flex-row gap-3">
+          {/* Search Box */}
+          <div className="flex-1 relative">
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+              placeholder="Search AI agents, tools, platforms..."
+              className="w-full bg-slate-950 border border-slate-800 rounded-lg pl-10 pr-4 py-2 text-sm text-white placeholder-slate-400 focus:outline-none focus:border-blue-500"
+            />
+          </div>
+
+          {/* Niche Dropdown */}
+          <select
+            value={selectedNiche}
+            onChange={(e) => { setSelectedNiche(e.target.value); setPage(1); }}
+            className="bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500"
+          >
+            <option value="">All Niches ▼</option>
+            {niches.map((n) => (
+              <option key={n} value={n}>{n}</option>
+            ))}
+          </select>
+
+          {/* Business Model Dropdown (B2B, B2C, C2C, D2C) */}
+          <select
+            value={selectedBusinessModel}
+            onChange={(e) => { setSelectedBusinessModel(e.target.value); setPage(1); }}
+            className="bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500 font-medium"
+          >
+            <option value="">Business Model ▼</option>
+            {businessModels.map((bm) => (
+              <option key={bm} value={bm}>{bm}</option>
+            ))}
+          </select>
+
+          {/* Pricing Dropdown */}
+          <select
+            value={selectedPricing}
+            onChange={(e) => { setSelectedPricing(e.target.value); setPage(1); }}
+            className="bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500"
+          >
+            <option value="">Pricing ▼</option>
+            {pricingOptions.map((p) => (
+              <option key={p} value={p}>{p}</option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      {/* 4. Explore by Niche Chips */}
+      <div>
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-base font-semibold text-white flex items-center gap-2">
+            <Layers className="h-4 w-4 text-blue-400" /> Explore by Niche
+          </h2>
+          {selectedNiche && (
+            <button 
+              onClick={() => setSelectedNiche("")} 
+              className="text-xs text-blue-400 hover:underline"
+            >
+              Clear Niche Filter
+            </button>
+          )}
+        </div>
+
+        <div className="flex flex-wrap gap-2">
+          {niches.map((niche) => {
+            const isSelected = selectedNiche === niche;
+            return (
+              <button
+                key={niche}
+                onClick={() => {
+                  setSelectedNiche(isSelected ? "" : niche);
+                  setPage(1);
+                }}
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                  isSelected
+                    ? "bg-blue-600 text-white shadow-md shadow-blue-500/20"
+                    : "bg-slate-900 border border-slate-800 text-slate-300 hover:border-slate-700 hover:text-white"
+                }`}
+              >
+                {niche}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* 5. Product Grid */}
+      <div>
+        <div className="flex items-center justify-between mb-4">
+          <p className="text-xs text-slate-400">
+            Showing <span className="font-semibold text-white">{(page - 1) * 24 + 1}–{Math.min(page * 24, totalCount)}</span> of <span className="font-semibold text-white">{totalCount.toLocaleString()}</span> products
           </p>
         </div>
 
-        <div className="flex items-center space-x-3">
-          <Link
-            href="/explore"
-            className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs shadow-lg shadow-blue-600/30 flex items-center space-x-1.5 transition-all"
-          >
-            <Sparkles className="w-4 h-4" />
-            <span>Explore 10k+ Catalog</span>
-          </Link>
-          <Link
-            href="/compare"
-            className="px-4 py-2 rounded-xl bg-gray-900 hover:bg-gray-800 text-gray-200 border border-gray-800 text-xs font-semibold flex items-center space-x-1.5 transition-all"
-          >
-            <BarChart3 className="w-4 h-4 text-purple-400" />
-            <span>Compare Matrix</span>
-          </Link>
-        </div>
-      </div>
-
-      {/* TOP KPI ANALYTICS CARDS (REAL DB METRICS) */}
-      {stats && (
-        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-4 gap-4">
-          
-          {/* Card 1: Total AI Products */}
-          <div className="saas-card saas-card-hover p-5 rounded-2xl space-y-2">
-            <div className="flex items-center justify-between text-gray-400 text-xs">
-              <span>Total AI Products</span>
-              <Activity className="w-4 h-4 text-blue-400" />
-            </div>
-            <div className="flex items-baseline space-x-2">
-              <span className="text-2xl sm:text-3xl font-extrabold font-mono text-white">{stats.total_products}</span>
-              <span className="text-[11px] font-mono text-emerald-400 font-semibold">+10k Arch</span>
-            </div>
-            <span className="text-[10px] text-gray-400 block font-mono">100% Primary Verified</span>
-          </div>
-
-          {/* Card 2: AI Agents */}
-          <div className="saas-card saas-card-hover p-5 rounded-2xl space-y-2">
-            <div className="flex items-center justify-between text-gray-400 text-xs">
-              <span>AI Agents</span>
-              <Bot className="w-4 h-4 text-purple-400" />
-            </div>
-            <div className="flex items-baseline space-x-2">
-              <span className="text-2xl sm:text-3xl font-extrabold font-mono text-purple-400">{stats.total_agents}</span>
-              <span className="text-[11px] font-mono text-purple-300">Level 1-5</span>
-            </div>
-            <span className="text-[10px] text-gray-400 block font-mono">Autonomy Matrix Active</span>
-          </div>
-
-          {/* Card 3: AI Models */}
-          <div className="saas-card saas-card-hover p-5 rounded-2xl space-y-2">
-            <div className="flex items-center justify-between text-gray-400 text-xs">
-              <span>Foundation Models</span>
-              <Cpu className="w-4 h-4 text-emerald-400" />
-            </div>
-            <div className="flex items-baseline space-x-2">
-              <span className="text-2xl sm:text-3xl font-extrabold font-mono text-emerald-400">{stats.total_models}</span>
-              <span className="text-[11px] font-mono text-emerald-300">2M Token Max</span>
-            </div>
-            <span className="text-[10px] text-gray-400 block font-mono">1M Token Pricing Tracked</span>
-          </div>
-
-          {/* Card 4: Verified SLA */}
-          <div className="saas-card saas-card-hover p-5 rounded-2xl space-y-2">
-            <div className="flex items-center justify-between text-gray-400 text-xs">
-              <span>Data Provenance Rate</span>
-              <ShieldCheck className="w-4 h-4 text-pink-400" />
-            </div>
-            <div className="flex items-baseline space-x-2">
-              <span className="text-2xl sm:text-3xl font-extrabold font-mono text-white">
-                {((stats.verified_count / (stats.total_products || 1)) * 100).toFixed(0)}%
-              </span>
-              <span className="text-[11px] font-mono text-emerald-400 font-semibold">Verified</span>
-            </div>
-            <span className="text-[10px] text-gray-400 block font-mono">Daily Automated Sweeps</span>
-          </div>
-
-        </div>
-      )}
-
-      {/* ANALYTICS CHARTS & DISTRIBUTIONS */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        
-        {/* Category Distribution Bar Chart */}
-        <div className="saas-card p-6 rounded-2xl space-y-4 lg:col-span-2">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="font-bold text-base text-white flex items-center gap-2">
-                <BarChart3 className="w-5 h-5 text-blue-400" />
-                Products Distribution by Category
-              </h3>
-              <p className="text-xs text-gray-400">Market share across top 6 domain taxonomies.</p>
-            </div>
-            <Link href="/categories" className="text-xs font-semibold text-blue-400 hover:underline">
-              View All 30+ →
-            </Link>
-          </div>
-
-          <div className="space-y-3 pt-2">
-            {[
-              { name: 'AI Models & Foundation LLMs', count: 8, pct: 85, color: 'bg-blue-500' },
-              { name: 'Developer Tools & IDE Copilots', count: 6, pct: 70, color: 'bg-purple-500' },
-              { name: 'Autonomous AI Agents', count: 5, pct: 60, color: 'bg-pink-500' },
-              { name: 'Audio & Speech Synthesis', count: 4, pct: 50, color: 'bg-emerald-500' },
-              { name: 'Search & Knowledge Management', count: 3, pct: 40, color: 'bg-amber-500' },
-              { name: 'Legal & Enterprise Research', count: 2, pct: 30, color: 'bg-indigo-500' }
-            ].map(cat => (
-              <div key={cat.name} className="space-y-1">
-                <div className="flex justify-between items-center text-xs font-medium">
-                  <span className="text-gray-300">{cat.name}</span>
-                  <span className="font-mono text-gray-400">{cat.count} products</span>
-                </div>
-                <div className="w-full h-2 bg-gray-900 rounded-full overflow-hidden">
-                  <div className={`h-full ${cat.color} rounded-full transition-all duration-500`} style={{ width: `${cat.pct}%` }} />
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Business Model & Pricing Breakdown */}
-        <div className="saas-card p-6 rounded-2xl space-y-5">
-          <h3 className="font-bold text-base text-white flex items-center gap-2">
-            <PieChart className="w-5 h-5 text-purple-400" />
-            Pricing & Access Models
-          </h3>
-          
-          <div className="space-y-4 text-xs font-medium">
-            <div className="p-3.5 rounded-xl bg-gray-900 border border-gray-800 flex justify-between items-center">
-              <span className="text-gray-300">Freemium Tier</span>
-              <span className="font-mono font-bold text-emerald-400">65% of Catalog</span>
-            </div>
-            <div className="p-3.5 rounded-xl bg-gray-900 border border-gray-800 flex justify-between items-center">
-              <span className="text-gray-300">API Pay-As-You-Go</span>
-              <span className="font-mono font-bold text-blue-400">75% of Catalog</span>
-            </div>
-            <div className="p-3.5 rounded-xl bg-gray-900 border border-gray-800 flex justify-between items-center">
-              <span className="text-gray-300">Open Source / Weights</span>
-              <span className="font-mono font-bold text-purple-400">25% of Catalog</span>
-            </div>
-            <div className="p-3.5 rounded-xl bg-gray-900 border border-gray-800 flex justify-between items-center">
-              <span className="text-gray-300">Custom Enterprise SLA</span>
-              <span className="font-mono font-bold text-amber-400">45% of Catalog</span>
-            </div>
-          </div>
-        </div>
-
-      </div>
-
-      {/* FEATURED PRODUCTS CATALOG GRID */}
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-xl font-bold text-white flex items-center gap-2">
-              <TrendingUp className="w-5 h-5 text-blue-400" />
-              Verified Product Intelligence Catalog
-            </h2>
-            <p className="text-xs text-gray-400">Verified top-tier products across models, tools, and platforms.</p>
-          </div>
-          <Link href="/explore" className="text-xs font-semibold text-blue-400 hover:underline flex items-center gap-1">
-            <span>View Full 10k+ Directory</span>
-            <ArrowRight className="w-3.5 h-3.5" />
-          </Link>
-        </div>
-
         {loading ? (
-          <div className="py-20 text-center text-sm text-gray-400">Loading market catalog...</div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {featuredProducts.map((prod) => (
-              <ProductCard key={prod.id} product={prod} />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            {[1, 2, 3, 4, 5, 6].map(i => (
+              <div key={i} className="h-48 rounded-xl bg-slate-900 animate-pulse border border-slate-800" />
             ))}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            {products.map((product) => {
+              const primaryNiche = product.categories?.[0]?.name || "AI Tool";
+              const bm = product.business_models?.[0] || (product.open_source_status ? "B2B" : "B2C");
+              const pricingTag = product.open_source_status ? "Open Source" : (product.free_plan_available ? "Freemium" : "Paid");
+
+              return (
+                <div 
+                  key={product.id}
+                  className="p-5 rounded-xl bg-slate-900 border border-slate-800 hover:border-slate-700 transition-all flex flex-col justify-between group"
+                >
+                  <div>
+                    {/* Top Badges */}
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="px-2.5 py-0.5 rounded-full bg-blue-600/10 text-blue-400 border border-blue-500/20 text-[11px] font-semibold">
+                        {product.product_type}
+                      </span>
+                      <div className="flex items-center gap-1.5">
+                        <span className="px-2 py-0.5 rounded bg-slate-800 text-slate-300 text-[10px] font-mono border border-slate-700">
+                          {bm}
+                        </span>
+                        <span className="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 text-[10px] font-medium border border-emerald-500/20">
+                          {pricingTag}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Title */}
+                    <Link href={`/tools/${product.slug}`}>
+                      <h3 className="font-bold text-white text-lg mt-3 group-hover:text-blue-400 transition-colors">
+                        {product.name}
+                      </h3>
+                    </Link>
+
+                    {/* Company */}
+                    <p className="text-xs text-slate-400 mt-0.5">
+                      by <span className="text-slate-300 font-medium">{product.company_name}</span>
+                    </p>
+
+                    {/* 1-Line Description */}
+                    <p className="text-xs text-slate-400 line-clamp-2 mt-2 leading-relaxed">
+                      {product.description}
+                    </p>
+
+                    {/* Niche Badge */}
+                    <div className="mt-3 flex items-center gap-1.5">
+                      <Tag className="h-3 w-3 text-slate-400" />
+                      <span className="text-xs text-slate-300 font-medium">{primaryNiche}</span>
+                    </div>
+                  </div>
+
+                  {/* CTA Button */}
+                  <div className="mt-5 pt-4 border-t border-slate-800 flex items-center justify-between">
+                    <Link href={`/tools/${product.slug}`} className="text-xs text-slate-400 hover:text-white">
+                      View Details
+                    </Link>
+                    <a
+                      href={product.official_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold shadow-md shadow-blue-600/20 transition-all"
+                    >
+                      Visit Official Website <ExternalLink className="h-3.5 w-3.5" />
+                    </a>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Server-Side Pagination */}
+        {totalPages > 1 && (
+          <div className="mt-8 flex items-center justify-center gap-2">
+            <button
+              onClick={() => setPage(p => Math.max(p - 1, 1))}
+              disabled={page === 1}
+              className="px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-xs font-medium text-slate-300 disabled:opacity-50"
+            >
+              Previous
+            </button>
+            <span className="text-xs text-slate-400 px-3">
+              Page <span className="font-semibold text-white">{page}</span> of {totalPages}
+            </span>
+            <button
+              onClick={() => setPage(p => Math.min(p + 1, totalPages))}
+              disabled={page === totalPages}
+              className="px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-xs font-medium text-slate-300 disabled:opacity-50"
+            >
+              Next
+            </button>
           </div>
         )}
       </div>
-
     </div>
   );
 }

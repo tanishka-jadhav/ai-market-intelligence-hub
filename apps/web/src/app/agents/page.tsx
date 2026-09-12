@@ -1,158 +1,165 @@
-'use client';
+"use client";
 
-import React, { useEffect, useState } from 'react';
-import Link from 'next/link';
-import { Bot, ShieldCheck, Globe, Code, Monitor, Users, Zap, Check, X, ArrowRight, ExternalLink } from 'lucide-react';
-import { fetchProducts } from '@/lib/api';
-import { Product } from '@/types';
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { Bot, ExternalLink, Search, Tag } from "lucide-react";
+
+interface AgentItem {
+  id: string;
+  name: string;
+  slug: string;
+  description: string;
+  company_name: string;
+  official_url: string;
+  open_source_status: boolean;
+  free_plan_available: boolean;
+  categories: { id: string; name: string }[];
+  business_models: string[];
+}
 
 export default function AgentsPage() {
-  const [agents, setAgents] = useState<Product[]>([]);
+  const [agents, setAgents] = useState<AgentItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedSubCategory, setSelectedSubCategory] = useState('All');
+  const [search, setSearch] = useState("");
+  const [selectedNiche, setSelectedNiche] = useState("");
+  const [selectedBM, setSelectedBM] = useState("");
 
-  const categories = [
-    'All',
-    'Coding Agents',
-    'Research Agents',
-    'Automation Agents',
-    'Enterprise Agents',
-    'Sales Agents',
-    'Support Agents'
-  ];
+  const niches = ["Automation", "Coding", "Customer Support", "Research", "Sales", "Workflow"];
+  const businessModels = ["B2B", "B2C", "C2C", "D2C"];
 
   useEffect(() => {
-    async function loadAgents() {
+    async function fetchAgents() {
       setLoading(true);
-      const res = await fetchProducts({ product_type: 'AI Agent', limit: 20 });
-      setAgents(res.products);
-      setLoading(false);
+      try {
+        let url = `http://127.0.0.1:8000/api/v1/products?product_type=AI+Agent&limit=50`;
+        if (search) url += `&search=${encodeURIComponent(search)}`;
+        if (selectedNiche) url += `&category=${encodeURIComponent(selectedNiche)}`;
+        if (selectedBM) url += `&business_model=${encodeURIComponent(selectedBM)}`;
+
+        const res = await fetch(url);
+        if (res.ok) {
+          const data = await res.json();
+          setAgents(data.items || []);
+        }
+      } catch (err) {
+        console.error("Error fetching agents:", err);
+      } finally {
+        setLoading(false);
+      }
     }
-    loadAgents();
-  }, []);
+    fetchAgents();
+  }, [search, selectedNiche, selectedBM]);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-10">
-      
-      {/* Header */}
-      <div className="text-center space-y-4 max-w-3xl mx-auto">
-        <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-purple-500/10 text-purple-400 border border-purple-500/30 text-xs font-semibold">
-          <Bot className="w-4 h-4 text-purple-400" />
-          <span>AUTONOMOUS AGENTS MATRIX</span>
+    <div className="space-y-8">
+      {/* Heading */}
+      <div>
+        <div className="flex items-center gap-3">
+          <div className="h-10 w-10 rounded-xl bg-emerald-600/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
+            <Bot className="h-6 w-6" />
+          </div>
+          <div>
+            <h1 className="text-3xl font-bold text-white tracking-tight">AI Agents</h1>
+            <p className="text-slate-400 text-sm mt-0.5">
+              Discover autonomous AI agents for business, productivity, automation and specialized tasks.
+            </p>
+          </div>
         </div>
-        <h1 className="text-3xl sm:text-5xl font-extrabold text-white">
-          AI Agent Directory & Autonomy Catalog
-        </h1>
-        <p className="text-sm text-gray-300">
-          Discover autonomous AI agents classified by autonomy levels (1-5), web browsing capabilities, sandbox code execution, desktop computer use, and multi-agent delegation frameworks.
-        </p>
       </div>
 
-      {/* Category Tabs */}
-      <div className="flex flex-wrap items-center justify-center gap-2">
-        {categories.map((cat) => (
-          <button
-            key={cat}
-            onClick={() => setSelectedSubCategory(cat)}
-            className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all ${
-              selectedSubCategory === cat
-                ? 'bg-purple-600 text-white shadow-lg shadow-purple-600/30'
-                : 'glass-panel text-gray-300 hover:bg-gray-800'
-            }`}
-          >
-            {cat}
-          </button>
-        ))}
+      {/* Filter Controls */}
+      <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 flex flex-col md:flex-row gap-3">
+        <div className="flex-1 relative">
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search AI agents..."
+            className="w-full bg-slate-950 border border-slate-800 rounded-lg pl-10 pr-4 py-2 text-sm text-white placeholder-slate-400 focus:outline-none focus:border-blue-500"
+          />
+        </div>
+
+        <select
+          value={selectedNiche}
+          onChange={(e) => setSelectedNiche(e.target.value)}
+          className="bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500"
+        >
+          <option value="">All Agent Niches ▼</option>
+          {niches.map(n => <option key={n} value={n}>{n}</option>)}
+        </select>
+
+        <select
+          value={selectedBM}
+          onChange={(e) => setSelectedBM(e.target.value)}
+          className="bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500"
+        >
+          <option value="">Business Model ▼</option>
+          {businessModels.map(bm => <option key={bm} value={bm}>{bm}</option>)}
+        </select>
       </div>
 
-      {/* Agents Cards Grid */}
+      {/* Grid */}
       {loading ? (
-        <div className="py-20 text-center text-sm text-gray-400">Loading AI Agents...</div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          {[1, 2, 3, 4, 5, 6].map(i => (
+            <div key={i} className="h-44 rounded-xl bg-slate-900 animate-pulse border border-slate-800" />
+          ))}
+        </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {agents.map((agent) => {
-            const caps = agent.agent_capabilities || {
-              autonomy_level: agent.autonomy_level || 3,
-              web_browsing: true,
-              code_execution: true,
-              computer_use: false,
-              multi_agent: true,
-              workflow_automation: true,
-              memory_type: 'Vector Store Memory',
-              human_approval_required: true
-            };
-
-            return (
-              <div
-                key={agent.id}
-                className="glass-panel glass-panel-hover rounded-2xl p-6 border border-gray-800 space-y-5 flex flex-col justify-between"
-              >
-                <div className="space-y-4">
-                  {/* Top Bar */}
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <h3 className="font-bold text-lg text-white">{agent.name}</h3>
-                      <p className="text-xs text-gray-400 font-medium">{agent.company_name}</p>
-                    </div>
-                    <span className="text-xs font-mono font-bold px-2.5 py-1 rounded-lg bg-purple-500/20 text-purple-300 border border-purple-500/40">
-                      Level {caps.autonomy_level} Autonomy
-                    </span>
-                  </div>
-
-                  <p className="text-xs text-gray-300 line-clamp-2 leading-relaxed">{agent.tagline || agent.description}</p>
-
-                  {/* Capability Checklist Grid */}
-                  <div className="grid grid-cols-2 gap-2 text-xs font-medium pt-2 border-t border-gray-800">
-                    <div className="flex items-center space-x-2 text-gray-300">
-                      <Globe className={`w-3.5 h-3.5 ${caps.web_browsing ? 'text-emerald-400' : 'text-gray-600'}`} />
-                      <span>Web Browsing</span>
-                    </div>
-                    <div className="flex items-center space-x-2 text-gray-300">
-                      <Code className={`w-3.5 h-3.5 ${caps.code_execution ? 'text-emerald-400' : 'text-gray-600'}`} />
-                      <span>Code Sandbox</span>
-                    </div>
-                    <div className="flex items-center space-x-2 text-gray-300">
-                      <Monitor className={`w-3.5 h-3.5 ${caps.computer_use ? 'text-emerald-400' : 'text-gray-600'}`} />
-                      <span>Computer Use</span>
-                    </div>
-                    <div className="flex items-center space-x-2 text-gray-300">
-                      <Users className={`w-3.5 h-3.5 ${caps.multi_agent ? 'text-emerald-400' : 'text-gray-600'}`} />
-                      <span>Multi-Agent</span>
-                    </div>
-                  </div>
-
-                  {/* Memory Type */}
-                  <div className="p-2.5 rounded-xl bg-gray-950/60 border border-gray-800 text-[11px] font-mono text-gray-400">
-                    <span>Memory: </span>
-                    <strong className="text-purple-300">{caps.memory_type || 'Workspace Memory'}</strong>
-                  </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          {agents.map((agent) => (
+            <div 
+              key={agent.id}
+              className="p-5 rounded-xl bg-slate-900 border border-slate-800 hover:border-slate-700 transition-all flex flex-col justify-between group"
+            >
+              <div>
+                <div className="flex items-center justify-between">
+                  <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[11px] font-semibold">
+                    AI Agent
+                  </span>
+                  <span className="px-2 py-0.5 rounded bg-slate-800 text-slate-300 text-[10px] font-mono border border-slate-700">
+                    {agent.business_models?.[0] || "B2B"}
+                  </span>
                 </div>
 
-                {/* Actions */}
-                <div className="grid grid-cols-2 gap-2 pt-4 border-t border-gray-800">
-                  <Link
-                    href={`/tools/${agent.slug}`}
-                    className="py-2 px-3 rounded-xl text-xs font-semibold text-center bg-gray-900 hover:bg-gray-800 text-gray-200 border border-gray-700"
-                  >
-                    VIEW SPECS
-                  </Link>
-                  <a
-                    href={`/api/v1/redirect?product_id=${agent.id}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="py-2 px-3 rounded-xl text-xs font-semibold text-center bg-purple-600 hover:bg-purple-500 text-white flex items-center justify-center space-x-1 shadow-lg shadow-purple-600/20"
-                  >
-                    <span>OFFICIAL SITE</span>
-                    <ExternalLink className="w-3 h-3 ml-0.5" />
-                  </a>
-                </div>
+                <Link href={`/tools/${agent.slug}`}>
+                  <h3 className="font-bold text-white text-lg mt-3 group-hover:text-emerald-400 transition-colors">
+                    {agent.name}
+                  </h3>
+                </Link>
 
+                <p className="text-xs text-slate-400 mt-0.5">
+                  by <span className="text-slate-300 font-medium">{agent.company_name}</span>
+                </p>
+
+                <p className="text-xs text-slate-400 line-clamp-2 mt-2 leading-relaxed">
+                  {agent.description}
+                </p>
+
+                <div className="mt-3 flex items-center gap-1.5">
+                  <Tag className="h-3 w-3 text-slate-400" />
+                  <span className="text-xs text-slate-300 font-medium">{agent.categories?.[0]?.name || "Autonomous Agents"}</span>
+                </div>
               </div>
-            );
-          })}
+
+              <div className="mt-5 pt-4 border-t border-slate-800 flex items-center justify-between">
+                <Link href={`/tools/${agent.slug}`} className="text-xs text-slate-400 hover:text-white">
+                  Details
+                </Link>
+                <a
+                  href={agent.official_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold shadow-md shadow-emerald-600/20 transition-all"
+                >
+                  Visit Agent <ExternalLink className="h-3.5 w-3.5" />
+                </a>
+              </div>
+            </div>
+          ))}
         </div>
       )}
-
     </div>
   );
 }
