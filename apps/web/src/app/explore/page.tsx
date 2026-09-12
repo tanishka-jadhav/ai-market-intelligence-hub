@@ -33,8 +33,9 @@ export default function ExploreToolsPage() {
   useEffect(() => {
     async function fetchTools() {
       setLoading(true);
+      const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
       try {
-        let url = `http://127.0.0.1:8000/api/v1/products?limit=60`;
+        let url = `${apiBase}/api/v1/products?limit=60`;
         if (search) url += `&search=${encodeURIComponent(search)}`;
         if (selectedNiche) url += `&category=${encodeURIComponent(selectedNiche)}`;
         if (selectedBM) url += `&business_model=${encodeURIComponent(selectedBM)}`;

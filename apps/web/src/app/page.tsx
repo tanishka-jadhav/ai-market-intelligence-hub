@@ -58,10 +58,12 @@ export default function DashboardHome() {
   const businessModels = ["B2B", "B2C", "C2C", "D2C"];
   const pricingOptions = ["Free", "Freemium", "Paid"];
 
+  const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
+
   useEffect(() => {
     async function fetchStats() {
       try {
-        const res = await fetch("http://127.0.0.1:8000/api/v1/stats");
+        const res = await fetch(`${apiBase}/api/v1/stats`);
         if (res.ok) {
           const data = await res.json();
           setStats({
@@ -76,13 +78,13 @@ export default function DashboardHome() {
       }
     }
     fetchStats();
-  }, []);
+  }, [apiBase]);
 
   useEffect(() => {
     async function fetchProducts() {
       setLoading(true);
       try {
-        let url = `http://127.0.0.1:8000/api/v1/products?page=${page}&limit=24`;
+        let url = `${apiBase}/api/v1/products?page=${page}&limit=24`;
         if (search) url += `&search=${encodeURIComponent(search)}`;
         if (selectedNiche) url += `&category=${encodeURIComponent(selectedNiche)}`;
         if (selectedBusinessModel) url += `&business_model=${encodeURIComponent(selectedBusinessModel)}`;
