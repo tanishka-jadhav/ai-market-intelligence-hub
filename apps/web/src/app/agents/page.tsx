@@ -41,7 +41,7 @@ export default function AgentsPage() {
         const res = await fetch(url);
         if (res.ok) {
           const data = await res.json();
-          setAgents(data.items || []);
+          setAgents(data.products || data.items || []);
         }
       } catch (err) {
         console.error("Error fetching agents:", err);

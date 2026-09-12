@@ -25,7 +25,7 @@ export default function ProvidersPage() {
         const res = await fetch("http://127.0.0.1:8000/api/v1/products?page=1&limit=100");
         if (res.ok) {
           const data = await res.json();
-          const items = data.items || [];
+          const items = data.products || data.items || [];
           
           const compMap: { [key: string]: ProviderItem } = {};
           items.forEach((item: any) => {

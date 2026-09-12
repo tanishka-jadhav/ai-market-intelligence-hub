@@ -90,7 +90,7 @@ export default function DashboardHome() {
         const res = await fetch(url);
         if (res.ok) {
           const data = await res.json();
-          setProducts(data.items || []);
+          setProducts(data.products || data.items || []);
           setTotalCount(data.total || 12739);
           setTotalPages(data.pages || 1);
         }

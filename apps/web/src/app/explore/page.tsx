@@ -42,7 +42,7 @@ export default function ExploreToolsPage() {
         const res = await fetch(url);
         if (res.ok) {
           const data = await res.json();
-          setTools(data.items || []);
+          setTools(data.products || data.items || []);
         }
       } catch (err) {
         console.error("Error fetching tools:", err);
