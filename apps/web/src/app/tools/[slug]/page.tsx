@@ -9,30 +9,22 @@ import {
 import { fetchProductDetail } from '@/lib/api';
 import { Product } from '@/types';
 
-export default function ProductDetailPage({ params }: { params?: { slug?: string } }) {
+export default function ProductDetailPage({ params }: { params: { slug: string } }) {
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // In Next.js App Router client components
-  const [slug, setSlug] = useState<string>('');
+  const targetSlug = params?.slug || (typeof window !== 'undefined' ? window.location.pathname.split('/').pop() : '');
 
   useEffect(() => {
-    // Extract slug from window path if needed
-    const pathParts = window.location.pathname.split('/');
-    const pathSlug = pathParts[pathParts.length - 1];
-    setSlug(pathSlug);
-  }, []);
-
-  useEffect(() => {
-    if (!slug) return;
+    if (!targetSlug) return;
     async function loadDetail() {
       setLoading(true);
-      const data = await fetchProductDetail(slug);
+      const data = await fetchProductDetail(targetSlug as string);
       setProduct(data);
       setLoading(false);
     }
     loadDetail();
-  }, [slug]);
+  }, [targetSlug]);
 
   if (loading) {
     return <div className="py-20 text-center text-sm text-gray-400">Loading product intelligence profile...</div>;
