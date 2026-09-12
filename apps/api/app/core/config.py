@@ -15,6 +15,7 @@ class Settings(BaseModel):
         super().__init__(**data)
         if not self.DATABASE_URL:
             possible_paths = [
+                os.path.abspath(os.path.join(os.path.dirname(__file__), "../../database/ai_market_hub.db")),
                 os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../../database/ai_market_hub.db")),
                 os.path.abspath(os.path.join(os.getcwd(), "database/ai_market_hub.db")),
                 os.path.abspath(os.path.join(os.getcwd(), "../database/ai_market_hub.db")),
