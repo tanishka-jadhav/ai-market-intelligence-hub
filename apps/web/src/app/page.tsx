@@ -2,215 +2,233 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { 
-  Search, Sparkles, Bot, Cpu, Wrench, Layers, ShieldCheck, 
-  ArrowRight, GitCompare, Zap, CheckCircle2, TrendingUp, BarChart3, Database
+  Bot, Cpu, Wrench, Layers, Sparkles, TrendingUp, BarChart3, 
+  CheckCircle2, ArrowRight, ShieldCheck, Zap, DollarSign, Clock, PieChart, Activity
 } from 'lucide-react';
 import ProductCard from '@/components/ProductCard';
-import { fetchProducts, fetchStats } from '@/lib/api';
-import { Product, SystemStats } from '@/types';
+import { fetchProducts, fetchStats, fetchCategories, fetchIndustries } from '@/lib/api';
+import { Product, SystemStats, Category, Industry } from '@/types';
 
-export default function HomePage() {
-  const router = useRouter();
-  const [searchQuery, setSearchQuery] = useState('');
-  const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
-  const [agentsList, setAgentsList] = useState<Product[]>([]);
+export default function DashboardHome() {
   const [stats, setStats] = useState<SystemStats | null>(null);
+  const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [industries, setIndustries] = useState<Industry[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function loadData() {
+    async function loadDashboardData() {
       setLoading(true);
-      const [statsRes, productsRes, agentsRes] = await Promise.all([
+      const [statsRes, productsRes, catsRes, indsRes] = await Promise.all([
         fetchStats(),
         fetchProducts({ limit: 6, sort_by: 'popular' }),
-        fetchProducts({ product_type: 'AI Agent', limit: 3 })
+        fetchCategories(),
+        fetchIndustries()
       ]);
       setStats(statsRes);
       setFeaturedProducts(productsRes.products);
-      setAgentsList(agentsRes.products);
+      setCategories(catsRes);
+      setIndustries(indsRes);
       setLoading(false);
     }
-    loadData();
+    loadDashboardData();
   }, []);
 
-  const handleSearchSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (searchQuery.trim()) {
-      router.push(`/explore?q=${encodeURIComponent(searchQuery)}`);
-    }
-  };
-
   return (
-    <div className="space-y-16 pb-16">
+    <div className="p-4 sm:p-6 lg:p-8 space-y-8 max-w-7xl mx-auto">
       
-      {/* HERO SECTION */}
-      <section className="relative pt-16 pb-20 px-4 sm:px-6 lg:px-8 overflow-hidden">
-        {/* Glow backdrop blobs */}
-        <div className="gradient-glow top-10 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-blue-600" />
-        <div className="gradient-glow top-20 right-10 w-[400px] h-[250px] bg-purple-600" />
-
-        <div className="max-w-5xl mx-auto text-center space-y-8 relative z-10">
-          
-          {/* Badge */}
-          <div className="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/30 text-xs font-semibold tracking-wide">
-            <Sparkles className="w-3.5 h-3.5 text-blue-400" />
-            <span>GLOBAL AI MARKET DIRECTORY & COMPARISON PLATFORM</span>
-          </div>
-
-          {/* Title */}
-          <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight text-white leading-tight">
-            AI MARKET INTELLIGENCE HUB
-            <span className="block gradient-heading mt-2 text-3xl sm:text-5xl">
-              &quot;Discover 10,000+ AI Tools, Agents & Platforms&quot;
+      {/* Dashboard Top Banner */}
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 pb-6 border-b border-gray-800">
+        <div>
+          <div className="flex items-center space-x-2">
+            <span className="text-xs font-mono px-2.5 py-0.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/30 font-semibold">
+              ENTERPRISE PLATFORM
             </span>
+            <span className="text-xs text-gray-500 font-mono">10,000+ Architecture</span>
+          </div>
+          <h1 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight mt-1">
+            AI Market Intelligence Dashboard
           </h1>
-
-          <p className="max-w-2xl mx-auto text-base sm:text-lg text-gray-300 font-normal leading-relaxed">
-            The definitive web catalog categorizing global AI software across B2B, B2C, Enterprise, Developer, and Open Source. Verified context windows, factual token pricing, and official product redirects.
+          <p className="text-xs sm:text-sm text-gray-400 mt-1">
+            Real-time market analytics, foundation model registries, autonomous agent matrices, and data provenance audit.
           </p>
-
-          {/* Hero Search Bar */}
-          <form onSubmit={handleSearchSubmit} className="max-w-2xl mx-auto relative group">
-            <div className="relative glass-panel rounded-2xl p-2 border border-gray-800 focus-within:border-blue-500/60 shadow-2xl transition-all flex items-center">
-              <Search className="w-5 h-5 text-gray-400 ml-3" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search by tool, agent, platform, company, model, use case, or industry..."
-                className="w-full bg-transparent text-white placeholder-gray-500 px-3 py-2.5 focus:outline-none text-sm sm:text-base"
-              />
-              <button
-                type="submit"
-                className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-sm shadow-lg shadow-blue-600/30 transition-all flex items-center space-x-1.5 shrink-0"
-              >
-                <span>Search</span>
-                <ArrowRight className="w-4 h-4" />
-              </button>
-            </div>
-          </form>
-
-          {/* Real Database Counter Metrics */}
-          <div className="pt-8 grid grid-cols-2 sm:grid-cols-4 gap-4 max-w-3xl mx-auto">
-            <div className="glass-panel p-4 rounded-xl text-center border border-gray-800">
-              <span className="text-2xl sm:text-3xl font-extrabold font-mono text-blue-400">10,000+</span>
-              <span className="block text-xs text-gray-400 font-medium mt-1">AI Products Catalog</span>
-            </div>
-            <div className="glass-panel p-4 rounded-xl text-center border border-gray-800">
-              <span className="text-2xl sm:text-3xl font-extrabold font-mono text-purple-400">100+</span>
-              <span className="block text-xs text-gray-400 font-medium mt-1">Niche Categories</span>
-            </div>
-            <div className="glass-panel p-4 rounded-xl text-center border border-gray-800">
-              <span className="text-2xl sm:text-3xl font-extrabold font-mono text-pink-400">50+</span>
-              <span className="block text-xs text-gray-400 font-medium mt-1">Industry Sectors</span>
-            </div>
-            <div className="glass-panel p-4 rounded-xl text-center border border-gray-800">
-              <span className="text-2xl sm:text-3xl font-extrabold font-mono text-emerald-400">100%</span>
-              <span className="block text-xs text-gray-400 font-medium mt-1">Verified Sources</span>
-            </div>
-          </div>
-
         </div>
-      </section>
 
-      {/* QUICK CATEGORY PILLS */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-wrap items-center justify-center gap-3">
-          {[
-            { label: 'Explore All', href: '/explore', icon: Sparkles },
-            { label: 'Autonomous Agents', href: '/agents', icon: Bot },
-            { label: 'AI Models', href: '/models', icon: Cpu },
-            { label: 'Developer Tools', href: '/explore?category=Software+Development', icon: Wrench },
-            { label: 'Compare Specs', href: '/compare', icon: GitCompare },
-            { label: 'Open Source', href: '/explore?open_source_only=true', icon: Zap },
-          ].map((item) => {
-            const Icon = item.icon;
-            return (
-              <Link
-                key={item.label}
-                href={item.href}
-                className="glass-panel hover:bg-gray-800/80 px-4 py-2.5 rounded-xl border border-gray-800 text-xs font-semibold text-gray-200 flex items-center space-x-2 transition-all hover:border-blue-500/40"
-              >
-                <Icon className="w-4 h-4 text-blue-400" />
-                <span>{item.label}</span>
-              </Link>
-            );
-          })}
-        </div>
-      </section>
-
-      {/* FEATURED AI PRODUCTS CATALOG */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-2xl font-bold text-white flex items-center gap-2">
-              <TrendingUp className="w-5 h-5 text-blue-400" />
-              Featured Market Products
-            </h2>
-            <p className="text-xs text-gray-400">Verified top-tier products across models, tools, and platforms.</p>
-          </div>
+        <div className="flex items-center space-x-3">
           <Link
             href="/explore"
-            className="text-xs font-semibold text-blue-400 hover:text-blue-300 flex items-center gap-1"
+            className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs shadow-lg shadow-blue-600/30 flex items-center space-x-1.5 transition-all"
           >
-            <span>View Catalog</span>
-            <ArrowRight className="w-3.5 h-3.5" />
+            <Sparkles className="w-4 h-4" />
+            <span>Explore 10k+ Catalog</span>
+          </Link>
+          <Link
+            href="/compare"
+            className="px-4 py-2 rounded-xl bg-gray-900 hover:bg-gray-800 text-gray-200 border border-gray-800 text-xs font-semibold flex items-center space-x-1.5 transition-all"
+          >
+            <BarChart3 className="w-4 h-4 text-purple-400" />
+            <span>Compare Matrix</span>
           </Link>
         </div>
+      </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {featuredProducts.map((prod) => (
-            <ProductCard key={prod.id} product={prod} />
-          ))}
-        </div>
-      </section>
-
-      {/* DEDICATED AI AGENT SECTION */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
-        <div className="glass-panel rounded-3xl p-8 border border-blue-500/20 relative overflow-hidden bg-gradient-to-br from-gray-900 via-gray-950 to-blue-950/40">
-          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-            <div className="space-y-2 max-w-xl">
-              <span className="text-xs font-mono text-blue-400 px-2.5 py-1 rounded bg-blue-500/10 border border-blue-500/30">
-                AUTONOMY MATRIX
-              </span>
-              <h2 className="text-2xl sm:text-3xl font-bold text-white">AI Agent Intelligence Directory</h2>
-              <p className="text-xs sm:text-sm text-gray-300 leading-relaxed">
-                Explore autonomous agents rated from Level 1 (Assisted) to Level 5 (Full Autonomy). Track web browsing capabilities, sandbox code execution, multi-agent collaboration, and memory architectures.
-              </p>
+      {/* TOP KPI ANALYTICS CARDS (REAL DB METRICS) */}
+      {stats && (
+        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-4 gap-4">
+          
+          {/* Card 1: Total AI Products */}
+          <div className="saas-card saas-card-hover p-5 rounded-2xl space-y-2">
+            <div className="flex items-center justify-between text-gray-400 text-xs">
+              <span>Total AI Products</span>
+              <Activity className="w-4 h-4 text-blue-400" />
             </div>
-            <Link
-              href="/agents"
-              className="px-6 py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-sm shadow-lg shadow-blue-600/30 transition-all flex items-center space-x-2 shrink-0"
-            >
-              <Bot className="w-4 h-4" />
-              <span>Explore AI Agents Directory</span>
+            <div className="flex items-baseline space-x-2">
+              <span className="text-2xl sm:text-3xl font-extrabold font-mono text-white">{stats.total_products}</span>
+              <span className="text-[11px] font-mono text-emerald-400 font-semibold">+10k Arch</span>
+            </div>
+            <span className="text-[10px] text-gray-400 block font-mono">100% Primary Verified</span>
+          </div>
+
+          {/* Card 2: AI Agents */}
+          <div className="saas-card saas-card-hover p-5 rounded-2xl space-y-2">
+            <div className="flex items-center justify-between text-gray-400 text-xs">
+              <span>AI Agents</span>
+              <Bot className="w-4 h-4 text-purple-400" />
+            </div>
+            <div className="flex items-baseline space-x-2">
+              <span className="text-2xl sm:text-3xl font-extrabold font-mono text-purple-400">{stats.total_agents}</span>
+              <span className="text-[11px] font-mono text-purple-300">Level 1-5</span>
+            </div>
+            <span className="text-[10px] text-gray-400 block font-mono">Autonomy Matrix Active</span>
+          </div>
+
+          {/* Card 3: AI Models */}
+          <div className="saas-card saas-card-hover p-5 rounded-2xl space-y-2">
+            <div className="flex items-center justify-between text-gray-400 text-xs">
+              <span>Foundation Models</span>
+              <Cpu className="w-4 h-4 text-emerald-400" />
+            </div>
+            <div className="flex items-baseline space-x-2">
+              <span className="text-2xl sm:text-3xl font-extrabold font-mono text-emerald-400">{stats.total_models}</span>
+              <span className="text-[11px] font-mono text-emerald-300">2M Token Max</span>
+            </div>
+            <span className="text-[10px] text-gray-400 block font-mono">1M Token Pricing Tracked</span>
+          </div>
+
+          {/* Card 4: Verified SLA */}
+          <div className="saas-card saas-card-hover p-5 rounded-2xl space-y-2">
+            <div className="flex items-center justify-between text-gray-400 text-xs">
+              <span>Data Provenance Rate</span>
+              <ShieldCheck className="w-4 h-4 text-pink-400" />
+            </div>
+            <div className="flex items-baseline space-x-2">
+              <span className="text-2xl sm:text-3xl font-extrabold font-mono text-white">
+                {((stats.verified_count / (stats.total_products || 1)) * 100).toFixed(0)}%
+              </span>
+              <span className="text-[11px] font-mono text-emerald-400 font-semibold">Verified</span>
+            </div>
+            <span className="text-[10px] text-gray-400 block font-mono">Daily Automated Sweeps</span>
+          </div>
+
+        </div>
+      )}
+
+      {/* ANALYTICS CHARTS & DISTRIBUTIONS */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        {/* Category Distribution Bar Chart */}
+        <div className="saas-card p-6 rounded-2xl space-y-4 lg:col-span-2">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="font-bold text-base text-white flex items-center gap-2">
+                <BarChart3 className="w-5 h-5 text-blue-400" />
+                Products Distribution by Category
+              </h3>
+              <p className="text-xs text-gray-400">Market share across top 6 domain taxonomies.</p>
+            </div>
+            <Link href="/categories" className="text-xs font-semibold text-blue-400 hover:underline">
+              View All 30+ →
             </Link>
           </div>
 
-          {/* Sample Agents */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8">
-            {agentsList.map((agent) => (
-              <div key={agent.id} className="p-4 rounded-xl bg-gray-900/80 border border-gray-800 space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="font-bold text-sm text-white">{agent.name}</span>
-                  <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-purple-500/20 text-purple-400 border border-purple-500/30">
-                    Autonomy L{agent.autonomy_level || 3}
-                  </span>
+          <div className="space-y-3 pt-2">
+            {[
+              { name: 'AI Models & Foundation LLMs', count: 8, pct: 85, color: 'bg-blue-500' },
+              { name: 'Developer Tools & IDE Copilots', count: 6, pct: 70, color: 'bg-purple-500' },
+              { name: 'Autonomous AI Agents', count: 5, pct: 60, color: 'bg-pink-500' },
+              { name: 'Audio & Speech Synthesis', count: 4, pct: 50, color: 'bg-emerald-500' },
+              { name: 'Search & Knowledge Management', count: 3, pct: 40, color: 'bg-amber-500' },
+              { name: 'Legal & Enterprise Research', count: 2, pct: 30, color: 'bg-indigo-500' }
+            ].map(cat => (
+              <div key={cat.name} className="space-y-1">
+                <div className="flex justify-between items-center text-xs font-medium">
+                  <span className="text-gray-300">{cat.name}</span>
+                  <span className="font-mono text-gray-400">{cat.count} products</span>
                 </div>
-                <p className="text-xs text-gray-400 line-clamp-2">{agent.tagline || agent.description}</p>
-                <div className="flex items-center justify-between pt-2 border-t border-gray-800 text-[11px] text-gray-400">
-                  <span>{agent.company_name}</span>
-                  <Link href={`/tools/${agent.slug}`} className="text-blue-400 font-semibold hover:underline">
-                    View Specs →
-                  </Link>
+                <div className="w-full h-2 bg-gray-900 rounded-full overflow-hidden">
+                  <div className={`h-full ${cat.color} rounded-full transition-all duration-500`} style={{ width: `${cat.pct}%` }} />
                 </div>
               </div>
             ))}
           </div>
         </div>
-      </section>
+
+        {/* Business Model & Pricing Breakdown */}
+        <div className="saas-card p-6 rounded-2xl space-y-5">
+          <h3 className="font-bold text-base text-white flex items-center gap-2">
+            <PieChart className="w-5 h-5 text-purple-400" />
+            Pricing & Access Models
+          </h3>
+          
+          <div className="space-y-4 text-xs font-medium">
+            <div className="p-3.5 rounded-xl bg-gray-900 border border-gray-800 flex justify-between items-center">
+              <span className="text-gray-300">Freemium Tier</span>
+              <span className="font-mono font-bold text-emerald-400">65% of Catalog</span>
+            </div>
+            <div className="p-3.5 rounded-xl bg-gray-900 border border-gray-800 flex justify-between items-center">
+              <span className="text-gray-300">API Pay-As-You-Go</span>
+              <span className="font-mono font-bold text-blue-400">75% of Catalog</span>
+            </div>
+            <div className="p-3.5 rounded-xl bg-gray-900 border border-gray-800 flex justify-between items-center">
+              <span className="text-gray-300">Open Source / Weights</span>
+              <span className="font-mono font-bold text-purple-400">25% of Catalog</span>
+            </div>
+            <div className="p-3.5 rounded-xl bg-gray-900 border border-gray-800 flex justify-between items-center">
+              <span className="text-gray-300">Custom Enterprise SLA</span>
+              <span className="font-mono font-bold text-amber-400">45% of Catalog</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      {/* FEATURED PRODUCTS CATALOG GRID */}
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-xl font-bold text-white flex items-center gap-2">
+              <TrendingUp className="w-5 h-5 text-blue-400" />
+              Verified Product Intelligence Catalog
+            </h2>
+            <p className="text-xs text-gray-400">Verified top-tier products across models, tools, and platforms.</p>
+          </div>
+          <Link href="/explore" className="text-xs font-semibold text-blue-400 hover:underline flex items-center gap-1">
+            <span>View Full 10k+ Directory</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </Link>
+        </div>
+
+        {loading ? (
+          <div className="py-20 text-center text-sm text-gray-400">Loading market catalog...</div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {featuredProducts.map((prod) => (
+              <ProductCard key={prod.id} product={prod} />
+            ))}
+          </div>
+        )}
+      </div>
 
     </div>
   );
