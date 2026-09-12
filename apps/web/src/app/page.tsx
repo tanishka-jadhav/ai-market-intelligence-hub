@@ -9,11 +9,10 @@ import {
   Sparkles, 
   ExternalLink, 
   Search, 
-  Filter, 
-  ChevronRight,
   Layers,
   Tag
 } from "lucide-react";
+import { ProductLogo } from "@/components/ProductLogo";
 
 interface ProductItem {
   id: string;
@@ -23,6 +22,7 @@ interface ProductItem {
   product_type: string;
   company_name: string;
   official_url: string;
+  logo_url?: string;
   open_source_status: boolean;
   free_plan_available: boolean;
   categories: { id: string; name: string }[];
@@ -68,7 +68,7 @@ export default function DashboardHome() {
             total_products: data.total_products || 12739,
             total_agents: data.total_agents || 253,
             total_tools: data.total_tools || 101,
-            total_providers: data.total_industries ? 4125 : 4125,
+            total_providers: 4125,
           });
         }
       } catch (err) {
@@ -105,7 +105,7 @@ export default function DashboardHome() {
 
   return (
     <div className="space-y-10">
-      {/* 1. Page Header */}
+      {/* Page Header */}
       <div>
         <h1 className="text-3xl font-bold text-white tracking-tight">AI Market Hub</h1>
         <p className="text-slate-400 mt-2 text-base">
@@ -113,7 +113,7 @@ export default function DashboardHome() {
         </p>
       </div>
 
-      {/* 2. Top 4 Statistics Cards */}
+      {/* Top 4 Statistics Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         <div className="p-5 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-between">
           <div>
@@ -156,10 +156,9 @@ export default function DashboardHome() {
         </div>
       </div>
 
-      {/* 3. Global Filter Bar */}
+      {/* Global Filter Bar */}
       <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 space-y-4">
         <div className="flex flex-col md:flex-row gap-3">
-          {/* Search Box */}
           <div className="flex-1 relative">
             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
             <input
@@ -171,7 +170,6 @@ export default function DashboardHome() {
             />
           </div>
 
-          {/* Niche Dropdown */}
           <select
             value={selectedNiche}
             onChange={(e) => { setSelectedNiche(e.target.value); setPage(1); }}
@@ -183,7 +181,6 @@ export default function DashboardHome() {
             ))}
           </select>
 
-          {/* Business Model Dropdown (B2B, B2C, C2C, D2C) */}
           <select
             value={selectedBusinessModel}
             onChange={(e) => { setSelectedBusinessModel(e.target.value); setPage(1); }}
@@ -195,7 +192,6 @@ export default function DashboardHome() {
             ))}
           </select>
 
-          {/* Pricing Dropdown */}
           <select
             value={selectedPricing}
             onChange={(e) => { setSelectedPricing(e.target.value); setPage(1); }}
@@ -209,7 +205,7 @@ export default function DashboardHome() {
         </div>
       </div>
 
-      {/* 4. Explore by Niche Chips */}
+      {/* Niche Chips */}
       <div>
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-base font-semibold text-white flex items-center gap-2">
@@ -248,7 +244,7 @@ export default function DashboardHome() {
         </div>
       </div>
 
-      {/* 5. Product Grid */}
+      {/* Product Grid */}
       <div>
         <div className="flex items-center justify-between mb-4">
           <p className="text-xs text-slate-400">
@@ -259,7 +255,7 @@ export default function DashboardHome() {
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
             {[1, 2, 3, 4, 5, 6].map(i => (
-              <div key={i} className="h-48 rounded-xl bg-slate-900 animate-pulse border border-slate-800" />
+              <div key={i} className="h-52 rounded-xl bg-slate-900 animate-pulse border border-slate-800" />
             ))}
           </div>
         ) : (
@@ -275,11 +271,43 @@ export default function DashboardHome() {
                   className="p-5 rounded-xl bg-slate-900 border border-slate-800 hover:border-slate-700 transition-all flex flex-col justify-between group"
                 >
                   <div>
-                    {/* Top Badges */}
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="px-2.5 py-0.5 rounded-full bg-blue-600/10 text-blue-400 border border-blue-500/20 text-[11px] font-semibold">
+                    {/* Header with Logo + Name */}
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex items-center gap-3">
+                        <ProductLogo 
+                          name={product.name} 
+                          officialUrl={product.official_url} 
+                          logoUrl={product.logo_url}
+                          productType={product.product_type}
+                        />
+                        <div>
+                          <Link href={`/tools/${product.slug}`}>
+                            <h3 className="font-bold text-white text-base group-hover:text-blue-400 transition-colors line-clamp-1">
+                              {product.name}
+                            </h3>
+                          </Link>
+                          <p className="text-xs text-slate-400">
+                            by <span className="text-slate-300 font-medium">{product.company_name}</span>
+                          </p>
+                        </div>
+                      </div>
+
+                      <span className="px-2.5 py-0.5 rounded-full bg-blue-600/10 text-blue-400 border border-blue-500/20 text-[11px] font-semibold shrink-0">
                         {product.product_type}
                       </span>
+                    </div>
+
+                    {/* Description */}
+                    <p className="text-xs text-slate-400 line-clamp-2 mt-3 leading-relaxed">
+                      {product.description}
+                    </p>
+
+                    {/* Metadata Badges */}
+                    <div className="mt-3 flex items-center justify-between gap-2 pt-2 border-t border-slate-800/60">
+                      <div className="flex items-center gap-1 text-slate-300 text-xs">
+                        <Tag className="h-3 w-3 text-slate-400" />
+                        <span>{primaryNiche}</span>
+                      </div>
                       <div className="flex items-center gap-1.5">
                         <span className="px-2 py-0.5 rounded bg-slate-800 text-slate-300 text-[10px] font-mono border border-slate-700">
                           {bm}
@@ -289,33 +317,10 @@ export default function DashboardHome() {
                         </span>
                       </div>
                     </div>
-
-                    {/* Title */}
-                    <Link href={`/tools/${product.slug}`}>
-                      <h3 className="font-bold text-white text-lg mt-3 group-hover:text-blue-400 transition-colors">
-                        {product.name}
-                      </h3>
-                    </Link>
-
-                    {/* Company */}
-                    <p className="text-xs text-slate-400 mt-0.5">
-                      by <span className="text-slate-300 font-medium">{product.company_name}</span>
-                    </p>
-
-                    {/* 1-Line Description */}
-                    <p className="text-xs text-slate-400 line-clamp-2 mt-2 leading-relaxed">
-                      {product.description}
-                    </p>
-
-                    {/* Niche Badge */}
-                    <div className="mt-3 flex items-center gap-1.5">
-                      <Tag className="h-3 w-3 text-slate-400" />
-                      <span className="text-xs text-slate-300 font-medium">{primaryNiche}</span>
-                    </div>
                   </div>
 
                   {/* CTA Button */}
-                  <div className="mt-5 pt-4 border-t border-slate-800 flex items-center justify-between">
+                  <div className="mt-4 pt-3 border-t border-slate-800 flex items-center justify-between">
                     <Link href={`/tools/${product.slug}`} className="text-xs text-slate-400 hover:text-white">
                       View Details
                     </Link>

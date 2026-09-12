@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Bot, ExternalLink, Search, Tag } from "lucide-react";
+import { ProductLogo } from "@/components/ProductLogo";
 
 interface AgentItem {
   id: string;
@@ -11,6 +12,7 @@ interface AgentItem {
   description: string;
   company_name: string;
   official_url: string;
+  logo_url?: string;
   open_source_status: boolean;
   free_plan_available: boolean;
   categories: { id: string; name: string }[];
@@ -31,7 +33,7 @@ export default function AgentsPage() {
     async function fetchAgents() {
       setLoading(true);
       try {
-        let url = `http://127.0.0.1:8000/api/v1/products?product_type=AI+Agent&limit=50`;
+        let url = `http://127.0.0.1:8000/api/v1/products?product_type=AI+Agent&limit=60`;
         if (search) url += `&search=${encodeURIComponent(search)}`;
         if (selectedNiche) url += `&category=${encodeURIComponent(selectedNiche)}`;
         if (selectedBM) url += `&business_model=${encodeURIComponent(selectedBM)}`;
@@ -59,7 +61,7 @@ export default function AgentsPage() {
             <Bot className="h-6 w-6" />
           </div>
           <div>
-            <h1 className="text-3xl font-bold text-white tracking-tight">AI Agents</h1>
+            <h1 className="text-3xl font-bold text-white tracking-tight">AI Agents Directory</h1>
             <p className="text-slate-400 text-sm mt-0.5">
               Discover autonomous AI agents for business, productivity, automation and specialized tasks.
             </p>
@@ -103,7 +105,7 @@ export default function AgentsPage() {
       {loading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {[1, 2, 3, 4, 5, 6].map(i => (
-            <div key={i} className="h-44 rounded-xl bg-slate-900 animate-pulse border border-slate-800" />
+            <div key={i} className="h-48 rounded-xl bg-slate-900 animate-pulse border border-slate-800" />
           ))}
         </div>
       ) : (
@@ -114,38 +116,49 @@ export default function AgentsPage() {
               className="p-5 rounded-xl bg-slate-900 border border-slate-800 hover:border-slate-700 transition-all flex flex-col justify-between group"
             >
               <div>
-                <div className="flex items-center justify-between">
-                  <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[11px] font-semibold">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    <ProductLogo 
+                      name={agent.name} 
+                      officialUrl={agent.official_url} 
+                      logoUrl={agent.logo_url}
+                      productType="AI Agent"
+                    />
+                    <div>
+                      <Link href={`/tools/${agent.slug}`}>
+                        <h3 className="font-bold text-white text-base group-hover:text-emerald-400 transition-colors line-clamp-1">
+                          {agent.name}
+                        </h3>
+                      </Link>
+                      <p className="text-xs text-slate-400">
+                        by <span className="text-slate-300 font-medium">{agent.company_name}</span>
+                      </p>
+                    </div>
+                  </div>
+
+                  <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[11px] font-semibold shrink-0">
                     AI Agent
                   </span>
+                </div>
+
+                <p className="text-xs text-slate-400 line-clamp-2 mt-3 leading-relaxed">
+                  {agent.description}
+                </p>
+
+                <div className="mt-3 flex items-center justify-between gap-2 pt-2 border-t border-slate-800/60">
+                  <div className="flex items-center gap-1 text-slate-300 text-xs">
+                    <Tag className="h-3 w-3 text-slate-400" />
+                    <span>{agent.categories?.[0]?.name || "Autonomous Agents"}</span>
+                  </div>
                   <span className="px-2 py-0.5 rounded bg-slate-800 text-slate-300 text-[10px] font-mono border border-slate-700">
                     {agent.business_models?.[0] || "B2B"}
                   </span>
                 </div>
-
-                <Link href={`/tools/${agent.slug}`}>
-                  <h3 className="font-bold text-white text-lg mt-3 group-hover:text-emerald-400 transition-colors">
-                    {agent.name}
-                  </h3>
-                </Link>
-
-                <p className="text-xs text-slate-400 mt-0.5">
-                  by <span className="text-slate-300 font-medium">{agent.company_name}</span>
-                </p>
-
-                <p className="text-xs text-slate-400 line-clamp-2 mt-2 leading-relaxed">
-                  {agent.description}
-                </p>
-
-                <div className="mt-3 flex items-center gap-1.5">
-                  <Tag className="h-3 w-3 text-slate-400" />
-                  <span className="text-xs text-slate-300 font-medium">{agent.categories?.[0]?.name || "Autonomous Agents"}</span>
-                </div>
               </div>
 
-              <div className="mt-5 pt-4 border-t border-slate-800 flex items-center justify-between">
+              <div className="mt-4 pt-3 border-t border-slate-800 flex items-center justify-between">
                 <Link href={`/tools/${agent.slug}`} className="text-xs text-slate-400 hover:text-white">
-                  Details
+                  View Details
                 </Link>
                 <a
                   href={agent.official_url}

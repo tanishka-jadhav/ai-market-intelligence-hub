@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Wrench, ExternalLink, Search, Tag } from "lucide-react";
+import { ProductLogo } from "@/components/ProductLogo";
 
 interface ToolItem {
   id: string;
@@ -12,6 +13,7 @@ interface ToolItem {
   product_type: string;
   company_name: string;
   official_url: string;
+  logo_url?: string;
   open_source_status: boolean;
   free_plan_available: boolean;
   categories: { id: string; name: string }[];
@@ -104,7 +106,7 @@ export default function ExploreToolsPage() {
       {loading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {[1, 2, 3, 4, 5, 6].map(i => (
-            <div key={i} className="h-44 rounded-xl bg-slate-900 animate-pulse border border-slate-800" />
+            <div key={i} className="h-48 rounded-xl bg-slate-900 animate-pulse border border-slate-800" />
           ))}
         </div>
       ) : (
@@ -115,38 +117,49 @@ export default function ExploreToolsPage() {
               className="p-5 rounded-xl bg-slate-900 border border-slate-800 hover:border-slate-700 transition-all flex flex-col justify-between group"
             >
               <div>
-                <div className="flex items-center justify-between">
-                  <span className="px-2.5 py-0.5 rounded-full bg-purple-600/10 text-purple-400 border border-purple-500/20 text-[11px] font-semibold">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    <ProductLogo 
+                      name={tool.name} 
+                      officialUrl={tool.official_url} 
+                      logoUrl={tool.logo_url}
+                      productType={tool.product_type}
+                    />
+                    <div>
+                      <Link href={`/tools/${tool.slug}`}>
+                        <h3 className="font-bold text-white text-base group-hover:text-purple-400 transition-colors line-clamp-1">
+                          {tool.name}
+                        </h3>
+                      </Link>
+                      <p className="text-xs text-slate-400">
+                        by <span className="text-slate-300 font-medium">{tool.company_name}</span>
+                      </p>
+                    </div>
+                  </div>
+
+                  <span className="px-2.5 py-0.5 rounded-full bg-purple-600/10 text-purple-400 border border-purple-500/20 text-[11px] font-semibold shrink-0">
                     {tool.product_type}
                   </span>
+                </div>
+
+                <p className="text-xs text-slate-400 line-clamp-2 mt-3 leading-relaxed">
+                  {tool.description}
+                </p>
+
+                <div className="mt-3 flex items-center justify-between gap-2 pt-2 border-t border-slate-800/60">
+                  <div className="flex items-center gap-1 text-slate-300 text-xs">
+                    <Tag className="h-3 w-3 text-slate-400" />
+                    <span>{tool.categories?.[0]?.name || "Developer Tools"}</span>
+                  </div>
                   <span className="px-2 py-0.5 rounded bg-slate-800 text-slate-300 text-[10px] font-mono border border-slate-700">
                     {tool.business_models?.[0] || "B2B"}
                   </span>
                 </div>
-
-                <Link href={`/tools/${tool.slug}`}>
-                  <h3 className="font-bold text-white text-lg mt-3 group-hover:text-purple-400 transition-colors">
-                    {tool.name}
-                  </h3>
-                </Link>
-
-                <p className="text-xs text-slate-400 mt-0.5">
-                  by <span className="text-slate-300 font-medium">{tool.company_name}</span>
-                </p>
-
-                <p className="text-xs text-slate-400 line-clamp-2 mt-2 leading-relaxed">
-                  {tool.description}
-                </p>
-
-                <div className="mt-3 flex items-center gap-1.5">
-                  <Tag className="h-3 w-3 text-slate-400" />
-                  <span className="text-xs text-slate-300 font-medium">{tool.categories?.[0]?.name || "Developer Tools"}</span>
-                </div>
               </div>
 
-              <div className="mt-5 pt-4 border-t border-slate-800 flex items-center justify-between">
+              <div className="mt-4 pt-3 border-t border-slate-800 flex items-center justify-between">
                 <Link href={`/tools/${tool.slug}`} className="text-xs text-slate-400 hover:text-white">
-                  Details
+                  View Details
                 </Link>
                 <a
                   href={tool.official_url}

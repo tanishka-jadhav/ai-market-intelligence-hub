@@ -5,17 +5,12 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { 
   ExternalLink, 
-  Sparkles, 
   ArrowLeft, 
   CheckCircle2, 
-  Building2, 
-  Tag, 
   Cpu, 
-  Clock, 
-  ShieldCheck,
-  Zap,
-  Globe
+  ShieldCheck
 } from "lucide-react";
+import { ProductLogo } from "@/components/ProductLogo";
 
 export default function ProductDetailPage() {
   const params = useParams();
@@ -75,10 +70,14 @@ export default function ProductDetailPage() {
       {/* Main Header Card */}
       <div className="p-8 rounded-2xl bg-slate-900 border border-slate-800 space-y-6">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div className="flex items-start gap-4">
-            <div className="h-16 w-16 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center text-white text-2xl font-bold shadow-lg shadow-blue-500/20">
-              <Sparkles className="h-8 w-8" />
-            </div>
+          <div className="flex items-start gap-5">
+            <ProductLogo
+              name={product.name}
+              officialUrl={product.official_url}
+              logoUrl={product.logo_url}
+              productType={product.product_type}
+              size="lg"
+            />
             <div>
               <div className="flex items-center gap-2">
                 <h1 className="text-3xl font-extrabold text-white tracking-tight">{product.name}</h1>
@@ -153,7 +152,7 @@ export default function ProductDetailPage() {
           </ul>
         </div>
 
-        {/* Verification & Access Box */}
+        {/* Provenance & Access Box */}
         <div className="p-6 rounded-2xl bg-slate-900 border border-slate-800 space-y-4">
           <h3 className="text-base font-bold text-white flex items-center gap-2">
             <ShieldCheck className="h-4 w-4 text-emerald-400" /> Provenance & Access

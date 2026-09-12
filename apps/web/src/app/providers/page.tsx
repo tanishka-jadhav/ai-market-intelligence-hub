@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Building2, ExternalLink, Search, Sparkles } from "lucide-react";
+import { Building2, ExternalLink, Search } from "lucide-react";
+import { ProductLogo } from "@/components/ProductLogo";
 
 interface ProviderItem {
   id: string;
@@ -26,7 +27,6 @@ export default function ProvidersPage() {
           const data = await res.json();
           const items = data.items || [];
           
-          // Group by company_name
           const compMap: { [key: string]: ProviderItem } = {};
           items.forEach((item: any) => {
             const name = item.company_name || "Independent";
@@ -85,7 +85,7 @@ export default function ProvidersPage() {
       {loading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {[1, 2, 3, 4, 5, 6].map(i => (
-            <div key={i} className="h-40 rounded-xl bg-slate-900 animate-pulse border border-slate-800" />
+            <div key={i} className="h-44 rounded-xl bg-slate-900 animate-pulse border border-slate-800" />
           ))}
         </div>
       ) : (
@@ -97,18 +97,21 @@ export default function ProvidersPage() {
             >
               <div>
                 <div className="flex items-start justify-between">
-                  <div className="h-10 w-10 rounded-lg bg-blue-600/10 border border-blue-500/20 flex items-center justify-center text-blue-400 font-bold text-lg">
-                    <Building2 className="h-5 w-5" />
-                  </div>
+                  <ProductLogo 
+                    name={provider.name}
+                    officialUrl={provider.website_url}
+                    productType="AI Platform"
+                    size="md"
+                  />
                   <span className="px-2.5 py-1 rounded-full bg-slate-800 border border-slate-700 text-xs text-blue-400 font-medium">
                     {provider.count} {provider.count === 1 ? "Product" : "Products"}
                   </span>
                 </div>
 
-                <h3 className="font-semibold text-white text-lg mt-4 group-hover:text-blue-400 transition-colors">
+                <h3 className="font-bold text-white text-lg mt-3 group-hover:text-blue-400 transition-colors">
                   {provider.name}
                 </h3>
-                <p className="text-xs text-slate-400 mt-1">
+                <p className="text-xs text-slate-400 mt-0.5">
                   Primary Niche: <span className="text-slate-300 font-medium">{provider.niche}</span>
                 </p>
 
