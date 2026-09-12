@@ -32,7 +32,8 @@ export default function AgentsPage() {
   useEffect(() => {
     async function fetchAgents() {
       setLoading(true);
-      const apiBase = process.env.NEXT_PUBLIC_API_URL || "";
+      const envUrl = process.env.NEXT_PUBLIC_API_URL || "";
+      const apiBase = (envUrl.includes("127.0.0.1") || envUrl.includes("ai-market-hub-api")) ? "" : envUrl;
       try {
         let url = `${apiBase}/api/v1/products?product_type=AI+Agent&limit=60`;
         if (search) url += `&search=${encodeURIComponent(search)}`;

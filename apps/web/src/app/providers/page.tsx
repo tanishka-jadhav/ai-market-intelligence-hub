@@ -21,7 +21,8 @@ export default function ProvidersPage() {
 
   useEffect(() => {
     async function fetchProviders() {
-      const apiBase = process.env.NEXT_PUBLIC_API_URL || "";
+      const envUrl = process.env.NEXT_PUBLIC_API_URL || "";
+      const apiBase = (envUrl.includes("127.0.0.1") || envUrl.includes("ai-market-hub-api")) ? "" : envUrl;
       try {
         const res = await fetch(`${apiBase}/api/v1/products?page=1&limit=100`);
         if (res.ok) {

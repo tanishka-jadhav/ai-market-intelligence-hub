@@ -33,7 +33,8 @@ export default function ExploreToolsPage() {
   useEffect(() => {
     async function fetchTools() {
       setLoading(true);
-      const apiBase = process.env.NEXT_PUBLIC_API_URL || "";
+      const envUrl = process.env.NEXT_PUBLIC_API_URL || "";
+      const apiBase = (envUrl.includes("127.0.0.1") || envUrl.includes("ai-market-hub-api")) ? "" : envUrl;
       try {
         let url = `${apiBase}/api/v1/products?limit=60`;
         if (search) url += `&search=${encodeURIComponent(search)}`;
