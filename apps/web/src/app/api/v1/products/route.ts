@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
+import productsData from "@/data/products.json";
 
 export const dynamic = "force-dynamic";
 
@@ -16,9 +17,10 @@ function getProducts() {
       return cachedProducts!;
     }
   } catch (e) {
-    console.error("Error reading products.json:", e);
+    console.error("Error reading products.json via fs, using static import fallback:", e);
   }
-  return [];
+  cachedProducts = productsData as any[];
+  return cachedProducts;
 }
 
 export async function GET(request: NextRequest) {

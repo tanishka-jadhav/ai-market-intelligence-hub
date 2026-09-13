@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Search, Moon, Sun, CheckCircle2 } from "lucide-react";
+import { Search, Moon, Sun, CheckCircle2, Lock } from "lucide-react";
+import { lockPlatformSession } from "./AuthGate";
 
 export function Header() {
   const router = useRouter();
@@ -40,6 +41,16 @@ export function Header() {
           <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" />
           <span>Data updated: Today</span>
         </div>
+
+        {/* Lock Platform Session */}
+        <button
+          onClick={lockPlatformSession}
+          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-400 hover:text-white rounded-lg hover:bg-slate-900 border border-slate-800 transition-colors"
+          title="Lock platform session"
+        >
+          <Lock className="h-3.5 w-3.5 text-blue-400" />
+          <span className="hidden md:inline">Lock Session</span>
+        </button>
 
         {/* Theme Toggle */}
         <button

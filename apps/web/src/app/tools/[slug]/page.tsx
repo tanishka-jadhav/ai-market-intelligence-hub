@@ -11,6 +11,7 @@ import {
   ShieldCheck
 } from "lucide-react";
 import { ProductLogo } from "@/components/ProductLogo";
+import productsData from "@/data/products.json";
 
 export default function ProductDetailPage() {
   const params = useParams();
@@ -21,21 +22,74 @@ export default function ProductDetailPage() {
 
   useEffect(() => {
     async function fetchDetail() {
-      const envUrl = process.env.NEXT_PUBLIC_API_URL || "";
-      const apiBase = (envUrl.includes("127.0.0.1") || envUrl.includes("ai-market-hub-api")) ? "" : envUrl;
+      if (!slug) return;
+      setLoading(true);
+
+      const targetSlug = decodeURIComponent(slug).toLowerCase().trim();
+
+      // Tier 1: Try relative Next.js API or external backend API
       try {
-        const res = await fetch(`${apiBase}/api/v1/products/${slug}`);
+        const envUrl = process.env.NEXT_PUBLIC_API_URL || "";
+        const apiBase = (envUrl.includes("127.0.0.1") || envUrl.includes("ai-market-hub-api")) ? "" : envUrl;
+        
+        const res = await fetch(`${apiBase}/api/v1/products/${encodeURIComponent(slug)}`);
         if (res.ok) {
           const data = await res.json();
-          setProduct(data);
+          if (data && !data.error) {
+            setProduct(data);
+            setLoading(false);
+            return;
+          }
         }
       } catch (err) {
-        console.error("Error loading product detail:", err);
+        console.warn("Backend API fetch error, falling back to static lookup:", err);
+      }
+
+      // Tier 2: Try internal /api/v1/products route if apiBase was external
+      try {
+        const res = await fetch(`/api/v1/products/${encodeURIComponent(slug)}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data && !data.error) {
+            setProduct(data);
+            setLoading(false);
+            return;
+          }
+        }
+      } catch (err) {
+        // Ignore and proceed to client-side fallback
+      }
+
+      // Tier 3: Client-side static products dataset lookup
+      try {
+        const products = productsData as any[];
+        const found = products.find((p: any) => {
+          if (!p) return false;
+          const pSlug = (p.slug || "").toLowerCase();
+          const pId = (p.id || "").toLowerCase();
+          const pNameSlug = (p.name || "").toLowerCase().replace(/[^a-z0-9]+/g, "-");
+          const pNameSpace = (p.name || "").toLowerCase().replace(/\s+/g, "-");
+          return (
+            pSlug === targetSlug ||
+            pId === targetSlug ||
+            pNameSlug === targetSlug ||
+            pNameSpace === targetSlug ||
+            pSlug.includes(targetSlug) ||
+            targetSlug.includes(pSlug)
+          );
+        });
+
+        if (found) {
+          setProduct(found);
+        }
+      } catch (err) {
+        console.error("Static product lookup error:", err);
       } finally {
         setLoading(false);
       }
     }
-    if (slug) fetchDetail();
+
+    fetchDetail();
   }, [slug]);
 
   if (loading) {
